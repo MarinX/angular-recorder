@@ -11,7 +11,8 @@ angular.module('angularAudioRecorder.services')
         swfUrl = scriptPath + '../lib/recorder.swf',
         utils,
         mp3Covert = false,
-        mp3Config = {bitRate: 92, lameJsUrl: scriptPath + '../lib/lame.min.js'}
+        mp3Config = {bitRate: 92, lameJsUrl: scriptPath + '../lib/lame.min.js'},
+        wavesurfer = null
         ;
 
       var swfHandlerConfig = {
@@ -303,6 +304,22 @@ angular.module('angularAudioRecorder.services')
 
       service.getMp3Config = function () {
         return mp3Config;
+      };
+
+      service.createWaveSurfer = function(options) {
+        wavesurfer = WaveSurfer.create(options);
+      };
+
+      service.getWaveSurfer = function() {
+        return wavesurfer;
+      };
+
+      service.getWaveSurferAudioContext = function() {
+        return wavesurfer.backend.ac;
+      };
+
+      service.setWavesurferFilter = function(filter) {
+        wavesurfer.backend.setFilter(filter);
       };
 
       service.$html5AudioProps = html5AudioProps;

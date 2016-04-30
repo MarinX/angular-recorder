@@ -125,6 +125,7 @@ var RecorderController = function (element, service, recorderUtils, $scope, $tim
           playbackOnPause();
           scopeApply();
         }
+        audioPlayer.volume = 0;
       });
 
 

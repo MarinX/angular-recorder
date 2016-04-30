@@ -158,6 +158,7 @@ var RecorderController = function (element, service, recorderUtils, $scope, $tim
           playbackOnPause();
           scopeApply();
         }
+        audioPlayer.volume = 0;
       });
 
 
@@ -415,6 +416,7 @@ RecorderController.$inject = ['$element', 'recorderService', 'recorderUtils', '$
 angular.module('angularAudioRecorder.controllers')
   .controller('recorderController', RecorderController)
 ;
+
 angular.module('angularAudioRecorder.directives', [
   'angularAudioRecorder.config',
   'angularAudioRecorder.services',
@@ -531,21 +533,22 @@ angular.module('angularAudioRecorder.directives')
           var audioPlayer;
           $element.html('<div class="waveSurfer"></div>');
           var options = angular.extend({container: $element.find('div')[0]}, attrs);
-          var waveSurfer = WaveSurfer.create(options);
-          waveSurfer.setVolume(0);
+          service.createWaveSurfer(options);
+
           utils.appendActionToCallback(recorder, 'onPlaybackStart|onPlaybackResume', function () {
-            waveSurfer.play();
+            service.getWaveSurfer().play();
           }, 'waveView');
           utils.appendActionToCallback(recorder, 'onPlaybackComplete|onPlaybackPause', function () {
-            waveSurfer.pause();
+            service.getWaveSurfer().pause();
           }, 'waveView');
 
           utils.appendActionToCallback(recorder, 'onRecordComplete', function () {
             if (!audioPlayer) {
               audioPlayer = recorder.getAudioPlayer();
+              audioPlayer.volume = 0;
               audioPlayer.addEventListener('seeking', function (e) {
                 var progress = audioPlayer.currentTime / audioPlayer.duration;
-                waveSurfer.seekTo(progress);
+                service.getWaveSurfer().seekTo(progress);
               });
             }
           }, 'waveView');
@@ -555,12 +558,14 @@ angular.module('angularAudioRecorder.directives')
             return recorder.audioModel;
           }, function (newBlob) {
             if (newBlob instanceof Blob) {
-              waveSurfer.loadBlob(newBlob);
+              service.getWaveSurfer().loadBlob(newBlob);
+
             }
           });
         }
       };
     }]);
+
 angular.module('angularAudioRecorder.directives')
   .directive('ngAudioRecorder', ['recorderService', '$timeout',
     function (recorderService, $timeout) {
@@ -623,7 +628,8 @@ angular.module('angularAudioRecorder.services')
         swfUrl = scriptPath + '../lib/recorder.swf',
         utils,
         mp3Covert = false,
-        mp3Config = {bitRate: 92, lameJsUrl: scriptPath + '../lib/lame.min.js'}
+        mp3Config = {bitRate: 92, lameJsUrl: scriptPath + '../lib/lame.min.js'},
+        wavesurfer = null
         ;
 
       var swfHandlerConfig = {
@@ -917,6 +923,22 @@ angular.module('angularAudioRecorder.services')
         return mp3Config;
       };
 
+      service.createWaveSurfer = function(options) {
+        wavesurfer = WaveSurfer.create(options);
+      };
+
+      service.getWaveSurfer = function() {
+        return wavesurfer;
+      };
+
+      service.getWaveSurferAudioContext = function() {
+        return wavesurfer.backend.ac;
+      };
+
+      service.setWavesurferFilter = function(filter) {
+        wavesurfer.backend.setFilter(filter);
+      };
+
       service.$html5AudioProps = html5AudioProps;
 
       var provider = {
@@ -945,6 +967,7 @@ angular.module('angularAudioRecorder.services')
       return provider;
     }])
 ;
+
 angular.module('angularAudioRecorder.services')
   .factory('recorderUtils', [
     /**

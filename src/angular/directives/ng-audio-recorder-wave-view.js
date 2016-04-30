@@ -16,21 +16,22 @@ angular.module('angularAudioRecorder.directives')
           var audioPlayer;
           $element.html('<div class="waveSurfer"></div>');
           var options = angular.extend({container: $element.find('div')[0]}, attrs);
-          var waveSurfer = WaveSurfer.create(options);
-          waveSurfer.setVolume(0);
+          service.createWaveSurfer(options);
+
           utils.appendActionToCallback(recorder, 'onPlaybackStart|onPlaybackResume', function () {
-            waveSurfer.play();
+            service.getWaveSurfer().play();
           }, 'waveView');
           utils.appendActionToCallback(recorder, 'onPlaybackComplete|onPlaybackPause', function () {
-            waveSurfer.pause();
+            service.getWaveSurfer().pause();
           }, 'waveView');
 
           utils.appendActionToCallback(recorder, 'onRecordComplete', function () {
             if (!audioPlayer) {
               audioPlayer = recorder.getAudioPlayer();
+              audioPlayer.volume = 0;
               audioPlayer.addEventListener('seeking', function (e) {
                 var progress = audioPlayer.currentTime / audioPlayer.duration;
-                waveSurfer.seekTo(progress);
+                service.getWaveSurfer().seekTo(progress);
               });
             }
           }, 'waveView');
@@ -40,7 +41,8 @@ angular.module('angularAudioRecorder.directives')
             return recorder.audioModel;
           }, function (newBlob) {
             if (newBlob instanceof Blob) {
-              waveSurfer.loadBlob(newBlob);
+              service.getWaveSurfer().loadBlob(newBlob);
+
             }
           });
         }
