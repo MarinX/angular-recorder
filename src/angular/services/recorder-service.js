@@ -319,7 +319,7 @@ angular.module('angularAudioRecorder.services')
       };
 
       service.setWavesurferFilter = function(filter) {
-        wavesurfer.backend.setFilter(filter);
+        wavesurfer.backend.setFilters(filter);
       };
 
       service.$html5AudioProps = html5AudioProps;
